@@ -2,9 +2,11 @@ import asyncio
 import io
 import os
 import re
+import socket
 from typing import Optional
 
 from aiogram import Bot, Dispatcher, types, F
+from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.filters import CommandStart, Command
 from aiogram.types import (
     InlineKeyboardMarkup,
@@ -144,7 +146,10 @@ async def run_bot():
         print("TELEGRAM_BOT_TOKEN is not set in environment or .env. Bot runner skipped.")
         return
 
-    bot = Bot(token=BOT_TOKEN)
+    session = AiohttpSession()
+    session._connector_init = {"family": socket.AF_INET}
+
+    bot = Bot(token=BOT_TOKEN, session=session)
     print("Telegram bot started polling...")
     await dp.start_polling(bot)
 
