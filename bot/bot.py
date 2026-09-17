@@ -3,7 +3,15 @@ import io
 import os
 import re
 import socket
+import sys
 from typing import Optional
+
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
 
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.client.session.aiohttp import AiohttpSession
@@ -150,7 +158,7 @@ async def run_bot():
     session._connector_init = {"family": socket.AF_INET}
 
     bot = Bot(token=BOT_TOKEN, session=session)
-    print("Telegram bot started polling...")
+    print("Telegram bot started polling...", flush=True)
     await dp.start_polling(bot)
 
 
