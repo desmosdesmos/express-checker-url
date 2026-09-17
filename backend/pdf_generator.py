@@ -46,7 +46,7 @@ def init_pdf_fonts():
 
 
 class NumberedCanvas(canvas.Canvas):
-    """Adds clean running footer and page numbers without any emojis."""
+    """Adds clean running footer and page numbers without emoji artifacts."""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._saved_page_states = []
@@ -69,45 +69,63 @@ class NumberedCanvas(canvas.Canvas):
         self.setFont(font_name, 8)
         self.setFillColor(colors.HexColor("#64748b"))
         footer_text = f"Материал канала @yanv_tg | Экспресс-аудит: @yanvtg | Страница {self._pageNumber} из {page_count}"
-        self.drawRightString(A4[0] - 15 * mm, 9 * mm, footer_text)
+        self.drawRightString(A4[0] - 16 * mm, 9 * mm, footer_text)
         self.restoreState()
 
 
 def generate_audit_pdf(audit_data: Dict[str, Any]) -> bytes:
-    """Builds a multi-page PDF report with clickable links and zero emoji square artifacts."""
+    """Builds a pixel-perfect, branded PDF report matching Yan's original layout."""
     f_reg, f_bold = init_pdf_fonts()
 
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         buffer,
         pagesize=A4,
-        leftMargin=14 * mm,
-        rightMargin=14 * mm,
-        topMargin=12 * mm,
+        leftMargin=16 * mm,
+        rightMargin=16 * mm,
+        topMargin=14 * mm,
         bottomMargin=16 * mm
     )
 
-    # Typography styles
-    style_author = ParagraphStyle(
-        "AuthorStyle",
+    # Styles
+    style_logo_text = ParagraphStyle(
+        "LogoText",
+        fontName=f_bold,
+        fontSize=13,
+        leading=13,
+        textColor=colors.white,
+        alignment=1
+    )
+    style_author_name = ParagraphStyle(
+        "AuthorName",
         fontName=f_bold,
         fontSize=12,
+        leading=14,
         textColor=colors.HexColor("#0f172a"),
         spaceAfter=2
+    )
+    style_author_links = ParagraphStyle(
+        "AuthorLinks",
+        fontName=f_reg,
+        fontSize=9,
+        leading=11,
+        textColor=colors.HexColor("#2563eb")
     )
     style_badge_year = ParagraphStyle(
         "BadgeYear",
         fontName=f_bold,
         fontSize=8,
-        textColor=colors.HexColor("#1e293b"),
-        alignment=2
+        leading=10,
+        textColor=colors.HexColor("#334155"),
+        alignment=1
     )
     style_kicker = ParagraphStyle(
         "Kicker",
         fontName=f_bold,
-        fontSize=9,
+        fontSize=8,
+        leading=10,
         textColor=colors.HexColor("#dc2626"),
-        spaceBefore=8,
+        spaceBefore=10,
         spaceAfter=3
     )
     style_doc_title = ParagraphStyle(
@@ -118,11 +136,11 @@ def generate_audit_pdf(audit_data: Dict[str, Any]) -> bytes:
         textColor=colors.HexColor("#0f172a"),
         spaceAfter=4
     )
-    style_domain_info = ParagraphStyle(
-        "DomainInfo",
-        fontName=f_bold,
-        fontSize=10,
-        leading=14,
+    style_meta_row = ParagraphStyle(
+        "MetaRow",
+        fontName=f_reg,
+        fontSize=9,
+        leading=13,
         textColor=colors.HexColor("#0284c7"),
         spaceAfter=6
     )
@@ -145,6 +163,7 @@ def generate_audit_pdf(audit_data: Dict[str, Any]) -> bytes:
         "FineTag",
         fontName=f_bold,
         fontSize=8,
+        leading=10,
         textColor=colors.HexColor("#dc2626"),
         alignment=2
     )
@@ -158,23 +177,55 @@ def generate_audit_pdf(audit_data: Dict[str, Any]) -> bytes:
 
     story = []
 
-    # 1. Header with author and clickable link
-    header_table_data = [
-        [
-            Paragraph("<b>Ян</b><br/><a href='https://t.me/yanv_tg' color='#2563eb'><u>@yanv_tg</u></a> (связь <a href='https://t.me/yanvtg' color='#2563eb'><u>@yanvtg</u></a>)", style_author),
-            Paragraph("<font color='#475569'>АКТУАЛЬНО НА 2026 ГОД</font>", style_badge_year)
-        ]
+    # 1. Header with authentic D/ Logo box, Name and Year Pill
+    # D/ Logo block: black rounded square
+    logo_table = Table([[Paragraph("D/", style_logo_text)]], colWidths=[8.5 * mm], rowHeights=[8.5 * mm])
+    logo_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#000000")),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 0),
+        ('TOPPADDING', (0,0), (-1,-1), 4),
+    ]))
+
+    # Author text block
+    author_info = [
+        [Paragraph("Ян", style_author_name)],
+        [Paragraph("<a href='https://t.me/yanv_tg' color='#2563eb'><u>@yanv_tg</u></a> &nbsp;<font color='#64748b'>(связь <a href='https://t.me/yanvtg' color='#2563eb'><u>@yanvtg</u></a>)</font>", style_author_links)]
     ]
-    header_table = Table(header_table_data, colWidths=[120 * mm, 62 * mm])
+    author_table = Table(author_info, colWidths=[100 * mm])
+    author_table.setStyle(TableStyle([
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('TOPPADDING', (0,0), (-1,-1), 0),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 0),
+        ('LEFTPADDING', (0,0), (-1,-1), 6),
+    ]))
+
+    # Year Pill Badge
+    badge_table = Table([[Paragraph("АКТУАЛЬНО НА 2026 ГОД", style_badge_year)]], colWidths=[52 * mm])
+    badge_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#f8fafc")),
+        ('BOX', (0,0), (-1,-1), 0.75, colors.HexColor("#cbd5e1")),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('TOPPADDING', (0,0), (-1,-1), 4),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+    ]))
+
+    # Assemble main header
+    header_data = [[
+        Table([[logo_table, author_table]], colWidths=[12 * mm, 105 * mm]),
+        badge_table
+    ]]
+    header_table = Table(header_data, colWidths=[122 * mm, 56 * mm])
     header_table.setStyle(TableStyle([
-        ('VALIGN', (0,0), (-1,-1), 'TOP'),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 5),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
         ('LINEBELOW', (0,0), (-1,-1), 0.5, colors.HexColor("#e2e8f0")),
     ]))
     story.append(header_table)
     story.append(Spacer(1, 6))
 
-    # 2. Main Title & Accurate Site Info
+    # 2. Document Title & Site Meta
     story.append(Paragraph("ЧЕК-ЛИСТ АУДИТА И ЮРИДИЧЕСКОЙ ЗАЩИТЫ", style_kicker))
     story.append(Paragraph("Требования к сайтам в РФ на 2026 год", style_doc_title))
 
@@ -184,8 +235,14 @@ def generate_audit_pdf(audit_data: Dict[str, Any]) -> bytes:
     hosting = audit_data.get("hosting_provider", "Хостинг")
 
     story.append(Paragraph(
-        f"Домен: <b>{domain}</b> &nbsp;|&nbsp; Тип: <b>{site_type}</b> &nbsp;|&nbsp; Движок: <b>{platform}</b> &nbsp;|&nbsp; Хостинг: <b>{hosting}</b>",
-        style_domain_info
+        f"<b>Домен:</b> {domain} &nbsp;|&nbsp; <b>Тип:</b> {site_type} &nbsp;|&nbsp; <b>Движок:</b> {platform} &nbsp;|&nbsp; <b>Хостинг:</b> {hosting}",
+        style_meta_row
+    ))
+
+    story.append(Paragraph(
+        "Практическое руководство для владельцев сайтов, интернет-магазинов и онлайн-бизнеса. "
+        "Как пройти круглосуточный ИИ-мониторинг Роскомнадзора, избежать блокировок и штрафов от 150 000 ₽ до 18 000 000 ₽.",
+        style_doc_desc
     ))
 
     # 3. Readiness Bar & Risk Metrics
@@ -198,15 +255,15 @@ def generate_audit_pdf(audit_data: Dict[str, Any]) -> bytes:
     fine_loc = legal.get("fine_loc", "до 18 000 000 ₽")
 
     readiness_header_data = [[
-        Paragraph(f"<b>ГОТОВНОСТЬ ВАШЕГО САЙТА К ПРОВЕРКАМ:</b>", ParagraphStyle('RHead', fontName=f_bold, fontSize=10, textColor=colors.HexColor("#1e293b"))),
+        Paragraph("<b>ГОТОВНОСТЬ ВАШЕГО САЙТА К ПРОВЕРКАМ:</b>", ParagraphStyle('RHead', fontName=f_bold, fontSize=10, textColor=colors.HexColor("#1e293b"))),
         Paragraph(f"<b>{passed} / {total} выполнено ({percent}%)</b>", ParagraphStyle('RVal', fontName=f_bold, fontSize=11, textColor=colors.HexColor("#2563eb"), alignment=2))
     ]]
-    readiness_header_table = Table(readiness_header_data, colWidths=[110 * mm, 72 * mm])
+    readiness_header_table = Table(readiness_header_data, colWidths=[108 * mm, 70 * mm])
     readiness_header_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#f8fafc")),
         ('BOX', (0,0), (-1,-1), 1, colors.HexColor("#cbd5e1")),
-        ('TOPPADDING', (0,0), (-1,-1), 6),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+        ('TOPPADDING', (0,0), (-1,-1), 5),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 5),
         ('LEFTPADDING', (0,0), (-1,-1), 10),
         ('RIGHTPADDING', (0,0), (-1,-1), 10),
     ]))
@@ -221,13 +278,13 @@ def generate_audit_pdf(audit_data: Dict[str, Any]) -> bytes:
             Paragraph("<font size=7 color='#64748b'>ШТРАФ ЗА ЛОКАЛИЗАЦИЮ</font><br/><b>" + fine_loc + "</b>", ParagraphStyle('M3', fontName=f_bold, fontSize=10, textColor=colors.HexColor("#0f172a")))
         ]
     ]
-    metrics_table = Table(metrics_data, colWidths=[60.6 * mm, 60.6 * mm, 60.6 * mm])
+    metrics_table = Table(metrics_data, colWidths=[59.3 * mm, 59.3 * mm, 59.3 * mm])
     metrics_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#ffffff")),
         ('BOX', (0,0), (-1,-1), 1, colors.HexColor("#cbd5e1")),
         ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-        ('TOPPADDING', (0,0), (-1,-1), 8),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 8),
+        ('TOPPADDING', (0,0), (-1,-1), 6),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
         ('LEFTPADDING', (0,0), (-1,-1), 8),
         ('RIGHTPADDING', (0,0), (-1,-1), 8),
         ('LINEAFTER', (0,0), (1,0), 0.5, colors.HexColor("#e2e8f0")),
@@ -242,7 +299,7 @@ def generate_audit_pdf(audit_data: Dict[str, Any]) -> bytes:
         "Инспектору передается готовый протокол с дедлайном на устранение всего 10 дней."
     )
     callout_data = [[Paragraph(callout_text, ParagraphStyle('Callout', fontName=f_reg, fontSize=8, leading=11, textColor=colors.HexColor("#7f1d1d")))]]
-    callout_table = Table(callout_data, colWidths=[182 * mm])
+    callout_table = Table(callout_data, colWidths=[178 * mm])
     callout_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#fef2f2")),
         ('LINELEFT', (0,0), (0,0), 3, colors.HexColor("#dc2626")),
@@ -266,7 +323,7 @@ def generate_audit_pdf(audit_data: Dict[str, Any]) -> bytes:
         b_head_table = Table([[
             Paragraph(f"<b>{b_title}</b>", style_block_title),
             Paragraph(f"<font color='#dc2626'>{b_fine}</font>", style_fine_tag)
-        ]], colWidths=[112 * mm, 70 * mm])
+        ]], colWidths=[110 * mm, 68 * mm])
         b_head_table.setStyle(TableStyle([
             ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#f1f5f9")),
             ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
@@ -294,13 +351,13 @@ def generate_audit_pdf(audit_data: Dict[str, Any]) -> bytes:
             content = (
                 f"<b>{it.get('title')}</b> &nbsp;<font size=7 color='#64748b'>({it.get('law_ref')})</font><br/>"
                 f"<font size=8 color='#334155'>{it.get('details')}</font><br/>"
-                f"<font size=8 color='#0284c7'><b>Рекомендация:</b> {it.get('tilda_fix')}</font>"
+                f"<font size=8 color='#0284c7'><b>Действие:</b> {it.get('tilda_fix')}</font>"
             )
 
             it_table = Table([[
                 Paragraph(status_symbol, ParagraphStyle('Sym', fontName=f_bold, alignment=1)),
                 Paragraph(content, style_item_title)
-            ]], colWidths=[14 * mm, 168 * mm])
+            ]], colWidths=[14 * mm, 164 * mm])
             it_table.setStyle(TableStyle([
                 ('BACKGROUND', (0,0), (-1,-1), bg_color),
                 ('BOX', (0,0), (-1,-1), 0.5, colors.HexColor("#e2e8f0")),
@@ -322,9 +379,9 @@ def generate_audit_pdf(audit_data: Dict[str, Any]) -> bytes:
     if m_checks:
         m_items = []
         m_head_table = Table([[
-            Paragraph("<b>8. Маркетинг и UX: почему сайт теряет клиентов</b>", style_block_title),
+            Paragraph("<b>8. Маркетинг и конверсия: почему сайт теряет клиентов</b>", style_block_title),
             Paragraph(f"<font color='#2563eb'>Оценка конверсии: {marketing.get('score', 0)}/100</font>", style_fine_tag)
-        ]], colWidths=[115 * mm, 67 * mm])
+        ]], colWidths=[112 * mm, 66 * mm])
         m_head_table.setStyle(TableStyle([
             ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#eff6ff")),
             ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
@@ -358,7 +415,7 @@ def generate_audit_pdf(audit_data: Dict[str, Any]) -> bytes:
             m_row = Table([[
                 Paragraph(status_symbol, ParagraphStyle('MSym', fontName=f_bold, alignment=1)),
                 Paragraph(m_content, style_item_title)
-            ]], colWidths=[14 * mm, 168 * mm])
+            ]], colWidths=[14 * mm, 164 * mm])
             m_row.setStyle(TableStyle([
                 ('BACKGROUND', (0,0), (-1,-1), bg_color),
                 ('BOX', (0,0), (-1,-1), 0.5, colors.HexColor("#e2e8f0")),
@@ -374,7 +431,7 @@ def generate_audit_pdf(audit_data: Dict[str, Any]) -> bytes:
         m_items.append(Spacer(1, 6))
         story.append(KeepTogether(m_items))
 
-    # 6. Final CTA Box (100% Clickable Links, zero emojis/squares)
+    # 6. Final CTA Box (100% Clickable Links, clean layout)
     cta_title = Paragraph(
         "<b>Нужен аудит вашего сайта под ключ?</b>",
         ParagraphStyle('CTATitle', fontName=f_bold, fontSize=12, textColor=colors.HexColor("#0f172a"), alignment=1)
@@ -382,11 +439,11 @@ def generate_audit_pdf(audit_data: Dict[str, Any]) -> bytes:
     cta_body = Paragraph(
         "Проверим ваш сайт на скрытые зарубежные счетчики, соответствие формам сбора данных и требованиям реестра Роскомнадзора. "
         "Устраним уязвимости до официальной проверки.<br/><br/>"
-        "• Telegram-канал: <a href='https://t.me/yanv_tg' color='#2563eb'><u><b>@yanv_tg</b></u></a> (разборы и чек-листы)<br/>"
-        "• Личная связь и аудит: <a href='https://t.me/yanvtg' color='#2563eb'><u><b>@yanvtg</b></u></a>",
+        "• Telegram-канал: <a href='https://t.me/yanv_tg' color='#2563eb'><u><b>@yanv_tg</b></u></a> (разборы сайтов и чек-листы)<br/>"
+        "• Личная связь и экспресс-аудит: <a href='https://t.me/yanvtg' color='#2563eb'><u><b>@yanvtg</b></u></a>",
         ParagraphStyle('CTABody', fontName=f_reg, fontSize=9, leading=14, textColor=colors.HexColor("#334155"), alignment=1)
     )
-    cta_box = Table([[cta_title], [cta_body]], colWidths=[182 * mm])
+    cta_box = Table([[cta_title], [cta_body]], colWidths=[178 * mm])
     cta_box.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#f8fafc")),
         ('BOX', (0,0), (-1,-1), 1, colors.HexColor("#cbd5e1")),

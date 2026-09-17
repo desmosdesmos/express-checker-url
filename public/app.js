@@ -29,7 +29,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const resultsView = document.getElementById("results-view");
 
   const btnBackHome = document.getElementById("btn-back-home");
-  const btnBackResults = document.getElementById("btn-back-results");
   const headerBrand = document.getElementById("header-brand");
   const siteUrlInput = document.getElementById("site-url");
   const btnSubmit = document.getElementById("btn-submit");
@@ -40,15 +39,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnScrollDetails = document.getElementById("btn-scroll-details");
   const toast = document.getElementById("toast");
 
+  // Subscription Modal Elements
+  const subModal = document.getElementById("sub-modal");
+  const btnModalChannel = document.getElementById("btn-modal-channel");
+  const btnModalVerify = document.getElementById("btn-modal-verify");
+
   let currentAuditData = null;
   let loadingInterval = null;
+  let pendingAuditUrl = "";
 
   // Check URL query parameters for auto-audit
   const urlParams = new URLSearchParams(window.location.search);
   const querySite = urlParams.get("site");
   if (querySite) {
     siteUrlInput.value = querySite;
-    startAudit();
+    handleAuditRequest();
   }
 
   // Input events
@@ -63,7 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   siteUrlInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") startAudit();
+    if (e.key === "Enter") handleAuditRequest();
   });
 
   document.querySelectorAll(".quick-chip").forEach((chip) => {
@@ -71,16 +76,15 @@ document.addEventListener("DOMContentLoaded", () => {
       triggerHaptic("light");
       siteUrlInput.value = chip.dataset.url;
       btnClear.style.display = "flex";
-      startAudit();
+      handleAuditRequest();
     });
   });
 
-  btnSubmit.addEventListener("click", startAudit);
+  btnSubmit.addEventListener("click", handleAuditRequest);
   btnRetry.addEventListener("click", resetToHome);
 
-  // Return to Home handlers
+  // Return to Home handler (Single unified button)
   btnBackHome.addEventListener("click", resetToHome);
-  btnBackResults.addEventListener("click", resetToHome);
 
   function resetToHome() {
     triggerHaptic("light");
@@ -105,14 +109,60 @@ document.addEventListener("DOMContentLoaded", () => {
     target.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
-  // Start Audit
-  async function startAudit() {
+  // Mandatory Subscription Flow
+  async function handleAuditRequest() {
     const rawUrl = siteUrlInput.value.trim();
     if (!rawUrl) {
       siteUrlInput.focus();
       return;
     }
 
+    pendingAuditUrl = rawUrl;
+
+    // Check if user already confirmed subscription
+    const isSubscribedCached = localStorage.getItem("yanv_sub_ok") === "1";
+    if (isSubscribedCached) {
+      startAudit(rawUrl);
+      return;
+    }
+
+    // Attempt live check via Telegram user ID if in WebApp
+    const telegramUserId = tg?.initDataUnsafe?.user?.id;
+    if (telegramUserId) {
+      try {
+        const subRes = await fetch("/api/check-sub", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id: telegramUserId })
+        });
+        const subData = await subRes.json();
+        if (subData.subscribed) {
+          localStorage.setItem("yanv_sub_ok", "1");
+          startAudit(rawUrl);
+          return;
+        }
+      } catch (e) {
+        // Fallback to modal
+      }
+    }
+
+    // Show subscription gate modal
+    triggerHaptic("warning");
+    subModal.style.display = "flex";
+  }
+
+  btnModalVerify.addEventListener("click", () => {
+    triggerHaptic("success");
+    localStorage.setItem("yanv_sub_ok", "1");
+    subModal.style.display = "none";
+    showToast("Подписка подтверждена! Запуск аудита...");
+    if (pendingAuditUrl) {
+      startAudit(pendingAuditUrl);
+    }
+  });
+
+  // Start Audit
+  async function startAudit(rawUrl) {
     triggerHaptic("medium");
 
     inputCard.style.display = "none";
@@ -136,7 +186,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!response.ok) {
         const errData = await response.json();
-        throw new Error(errData.detail || "Ошибка соединения с сайтом");
+        throw new Error(errData.detail || "Ошибка соединения с указанным сайтом");
       }
 
       currentAuditData = await response.json();
@@ -178,7 +228,15 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderResults(data) {
     loadingCard.style.display = "none";
     resultsView.style.display = "block";
+
+    // Show single header back button
     btnBackHome.style.display = "inline-flex";
+
+    // Header Chips
+    document.getElementById("res-domain").textContent = data.domain;
+    document.getElementById("res-cms-chip").textContent = data.cms_platform;
+    document.getElementById("res-ssl-chip").textContent = data.is_https ? "HTTPS" : "Без SSL";
+    document.getElementById("res-ssl-chip").className = data.is_https ? "chip chip-ssl" : "chip chip-neutral";
 
     // 1. Executive Summary Snapshot
     const exec = data.executive_summary;
@@ -186,15 +244,15 @@ document.addEventListener("DOMContentLoaded", () => {
     badgeEl.textContent = exec.verdict_badge;
 
     if (exec.overall_risk === "Критический риск") {
-      badgeEl.className = "verdict-badge badge-critical";
+      badgeEl.className = "verdict-pill badge-critical";
     } else if (exec.overall_risk === "Высокий риск") {
-      badgeEl.className = "verdict-badge badge-high";
+      badgeEl.className = "verdict-pill badge-high";
     } else {
-      badgeEl.className = "verdict-badge badge-safe";
+      badgeEl.className = "verdict-pill badge-safe";
     }
 
     document.getElementById("exec-title").textContent = exec.verdict_title;
-    document.getElementById("exec-site-type").textContent = `${data.site_type} • ${data.cms_platform}`;
+    document.getElementById("exec-site-type").textContent = data.site_type;
 
     // Render Takeaways
     const takeawaysContainer = document.getElementById("exec-takeaways");
@@ -209,10 +267,10 @@ document.addEventListener("DOMContentLoaded", () => {
       takeawaysContainer.appendChild(itemEl);
     });
 
-    // Snapshot numbers
-    document.getElementById("snap-legal").textContent = `${data.legal.passed} / ${data.legal.total} (${data.legal.percent}%)`;
+    // Snapshot numbers (Zero overflow)
+    document.getElementById("snap-legal").textContent = `${data.legal.passed} / ${data.legal.total}`;
     document.getElementById("snap-fine-form").textContent = data.legal.fine_form;
-    document.getElementById("snap-hosting").textContent = `${data.hosting_provider} (${data.is_ru_hosting ? 'РФ' : 'Зарубеж'})`;
+    document.getElementById("snap-hosting").textContent = `${data.hosting_provider_guess || data.hosting_provider} (${data.is_ru_hosting ? 'РФ' : 'Зарубеж'})`;
 
     // Filter counts
     document.getElementById("count-failed").textContent = data.legal.failed;
