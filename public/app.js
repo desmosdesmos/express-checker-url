@@ -118,16 +118,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     pendingAuditUrl = rawUrl;
-
-    // Check if user already confirmed subscription
-    const isSubscribedCached = localStorage.getItem("yanv_sub_ok") === "1";
-    if (isSubscribedCached) {
-      startAudit(rawUrl);
-      return;
-    }
-
-    // Attempt live check via Telegram user ID if in WebApp
     const telegramUserId = tg?.initDataUnsafe?.user?.id;
+
+    // If Telegram user ID is present, perform live verification
     if (telegramUserId) {
       try {
         const subRes = await fetch("/api/check-sub", {
@@ -140,24 +133,98 @@ document.addEventListener("DOMContentLoaded", () => {
           localStorage.setItem("yanv_sub_ok", "1");
           startAudit(rawUrl);
           return;
+        } else {
+          localStorage.removeItem("yanv_sub_ok");
         }
       } catch (e) {
-        // Fallback to modal
+        // network issue, fallback to modal
+      }
+    } else {
+      // Outside Telegram browser fallback check
+      const isSubscribedCached = localStorage.getItem("yanv_sub_ok") === "1";
+      if (isSubscribedCached) {
+        startAudit(rawUrl);
+        return;
       }
     }
 
     // Show subscription gate modal
     triggerHaptic("warning");
+    const statusBox = document.getElementById("modal-sub-status");
+    if (statusBox) statusBox.style.display = "none";
     subModal.style.display = "flex";
   }
 
-  btnModalVerify.addEventListener("click", () => {
-    triggerHaptic("success");
-    localStorage.setItem("yanv_sub_ok", "1");
-    subModal.style.display = "none";
-    showToast("Подписка подтверждена! Запуск аудита...");
-    if (pendingAuditUrl) {
-      startAudit(pendingAuditUrl);
+  btnModalVerify.addEventListener("click", async () => {
+    const telegramUserId = tg?.initDataUnsafe?.user?.id;
+    const statusBox = document.getElementById("modal-sub-status");
+    const verifyText = document.getElementById("btn-verify-text");
+
+    // Outside Telegram WebApp
+    if (!telegramUserId) {
+      triggerHaptic("error");
+      if (statusBox) {
+        statusBox.style.display = "block";
+        statusBox.className = "modal-sub-status status-warn";
+        statusBox.innerHTML = `
+          <strong>Откройте в Telegram:</strong><br/>
+          Для автоматической проверки подписки запустите сервис через Telegram-бота 
+          <a href="https://t.me/auditurl_bot" target="_blank" style="color: #60a5fa; text-decoration: underline;">@auditurl_bot</a>.
+        `;
+      }
+      return;
+    }
+
+    // Checking state
+    btnModalVerify.disabled = true;
+    if (verifyText) verifyText.textContent = "Проверяем в Telegram...";
+    if (statusBox) statusBox.style.display = "none";
+
+    try {
+      const res = await fetch("/api/check-sub", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: telegramUserId })
+      });
+      const data = await res.json();
+
+      if (data.subscribed === true) {
+        triggerHaptic("success");
+        localStorage.setItem("yanv_sub_ok", "1");
+        subModal.style.display = "none";
+        showToast("Подписка подтверждена! Запуск аудита...");
+        if (pendingAuditUrl) {
+          startAudit(pendingAuditUrl);
+        }
+      } else {
+        triggerHaptic("error");
+        if (statusBox) {
+          statusBox.style.display = "block";
+          statusBox.className = "modal-sub-status status-err";
+
+          if (data.error === "bot_not_admin") {
+            statusBox.innerHTML = `
+              <strong>Внимание администратора:</strong><br/>
+              Бот <b>@auditurl_bot</b> еще не добавлен в администраторы канала <b>@yanv_tg</b>. Добавьте бота в канал, чтобы Telegram разрешил проверку подписок.
+            `;
+          } else {
+            statusBox.innerHTML = `
+              <strong>Подписка не найдена:</strong><br/>
+              Вы еще не подписались на канал <b>@yanv_tg</b>. Пожалуйста, нажмите кнопку 1 выше, подпишитесь на канал и затем нажмите «Проверить» снова.
+            `;
+          }
+        }
+      }
+    } catch (err) {
+      triggerHaptic("error");
+      if (statusBox) {
+        statusBox.style.display = "block";
+        statusBox.className = "modal-sub-status status-err";
+        statusBox.textContent = "Ошибка соединения с сервером при проверке подписки. Попробуйте еще раз.";
+      }
+    } finally {
+      btnModalVerify.disabled = false;
+      if (verifyText) verifyText.textContent = "2. Я подписался, проверить";
     }
   });
 

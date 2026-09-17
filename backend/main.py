@@ -7,6 +7,9 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from aiogram import Bot
 from aiogram.client.session.aiohttp import AiohttpSession
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from .crawler import crawl_website
 from .scorer import compile_full_audit
@@ -46,16 +49,23 @@ async def health_check():
 @app.post("/api/check-sub")
 @app.post("/check-sub")
 async def check_channel_subscription(req: SubCheckRequest):
-    """Verifies whether the user is subscribed to @yanv_tg channel."""
-    bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    """Strictly verifies whether the user is subscribed to @yanv_tg channel."""
+    bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "8902079020:AAGTldoxJ4u2UqlHVKiZPgLa96BJ4EvmEzM").strip() or "8902079020:AAGTldoxJ4u2UqlHVKiZPgLa96BJ4EvmEzM"
     channel = "@yanv_tg"
+    channel_id = "-1002151986698"
 
-    if not bot_token or not req.user_id:
+    if not bot_token:
         return {
             "subscribed": False,
-            "channel": channel,
-            "channel_url": "https://t.me/yanv_tg",
-            "message": "Требуется подписка на канал @yanv_tg"
+            "error": "no_bot_token",
+            "message": "TELEGRAM_BOT_TOKEN не настроен на сервере"
+        }
+
+    if not req.user_id:
+        return {
+            "subscribed": False,
+            "error": "no_user_id",
+            "message": "Откройте сервис через Telegram-бота @auditurl_bot для проверки подписки"
         }
 
     try:
@@ -64,23 +74,52 @@ async def check_channel_subscription(req: SubCheckRequest):
         bot = Bot(token=bot_token, session=session)
 
         try:
-            member = await bot.get_chat_member(chat_id=channel, user_id=req.user_id)
+            member = await bot.get_chat_member(chat_id=channel_id, user_id=req.user_id)
             is_sub = member.status in ["creator", "administrator", "member", "restricted"]
             return {
                 "subscribed": is_sub,
                 "status": member.status,
                 "channel": channel,
-                "channel_url": "https://t.me/yanv_tg"
+                "channel_url": "https://t.me/yanv_tg",
+                "message": "Подписка подтверждена!" if is_sub else "Вы не подписаны на канал @yanv_tg"
             }
+        except Exception as api_err:
+            err_text = str(api_err).lower()
+            if "member list is inaccessible" in err_text or "not enough rights" in err_text or "chat not found" in err_text:
+                return {
+                    "subscribed": False,
+                    "error": "bot_not_admin",
+                    "channel": channel,
+                    "channel_url": "https://t.me/yanv_tg",
+                    "message": "Бот @auditurl_bot еще не добавлен в администраторы канала @yanv_tg. Добавьте бота в канал для проверки подписчиков!"
+                }
+            elif "user not found" in err_text:
+                return {
+                    "subscribed": False,
+                    "error": "not_subscribed",
+                    "channel": channel,
+                    "channel_url": "https://t.me/yanv_tg",
+                    "message": "Вы не подписаны на канал @yanv_tg. Подпишитесь и нажмите проверку еще раз."
+                }
+            else:
+                return {
+                    "subscribed": False,
+                    "error": "telegram_error",
+                    "detail": str(api_err),
+                    "channel": channel,
+                    "channel_url": "https://t.me/yanv_tg",
+                    "message": f"Ошибка проверки подписки: {str(api_err)}"
+                }
         finally:
             await bot.session.close()
     except Exception as e:
-        # If bot is not yet added to channel as admin, require manual confirmation
         return {
             "subscribed": False,
+            "error": "network_error",
+            "detail": str(e),
             "channel": channel,
             "channel_url": "https://t.me/yanv_tg",
-            "error": str(e)
+            "message": "Ошибка связи с серверами Telegram"
         }
 
 

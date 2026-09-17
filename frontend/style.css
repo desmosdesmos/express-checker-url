@@ -1110,6 +1110,32 @@ h1, h2, h3, .brand-name, .hero-title, .exec-headline, .btn {
   gap: 8px;
 }
 
+.modal-sub-status {
+  padding: 10px 12px;
+  border-radius: var(--radius-xs);
+  font-size: 11.5px;
+  line-height: 1.4;
+  text-align: left;
+  margin-bottom: 14px;
+}
+
+.modal-sub-status.status-err {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+
+.modal-sub-status.status-warn {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #fcd34d;
+}
+
+.btn-modal-verify:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 .btn-modal-join {
   background: #2563eb;
   color: #fff;
