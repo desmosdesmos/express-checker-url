@@ -24,7 +24,7 @@ from backend.pdf_generator import generate_audit_pdf
 load_dotenv()
 
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
-WEBAPP_URL = os.getenv("WEBAPP_URL", "https://your-mini-app-domain.com")
+WEBAPP_URL = os.getenv("WEBAPP_URL", "https://express-checker-url.vercel.app")
 CHANNEL_URL = "https://t.me/yanv_tg"
 AUTHOR_URL = "https://t.me/yanvtg"
 
