@@ -73,6 +73,8 @@ async def export_audit_pdf(req: AuditRequest):
 
 
 # Mount frontend static directory if exists
+public_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "public"))
 frontend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend"))
-if os.path.exists(frontend_path):
-    app.mount("/", StaticFiles(directory=frontend_path, html=True), name="frontend")
+static_path = public_path if os.path.exists(public_path) else (frontend_path if os.path.exists(frontend_path) else None)
+if static_path:
+    app.mount("/", StaticFiles(directory=static_path, html=True), name="frontend")

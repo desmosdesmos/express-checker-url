@@ -18,14 +18,27 @@ FONT_REGULAR = "Arial"
 FONT_BOLD = "Arial-Bold"
 
 def init_pdf_fonts():
-    # Try Windows system fonts
+    # Priority 1: Bundled font in project (guaranteed to work on Vercel/Linux/Docker)
+    bundled_dir = os.path.join(os.path.dirname(__file__), "fonts")
+    b_reg = os.path.join(bundled_dir, "CustomArial.ttf")
+    b_bold = os.path.join(bundled_dir, "CustomArial-Bold.ttf")
+    if os.path.exists(b_reg) and os.path.exists(b_bold):
+        try:
+            if "CustomArial" not in pdfmetrics.getRegisteredFontNames():
+                pdfmetrics.registerFont(TTFont("CustomArial", b_reg))
+                pdfmetrics.registerFont(TTFont("CustomArial-Bold", b_bold))
+            return "CustomArial", "CustomArial-Bold"
+        except Exception:
+            pass
+
+    # Priority 2: Windows system fonts
     win_arial = "C:/Windows/Fonts/arial.ttf"
     win_arial_bd = "C:/Windows/Fonts/arialbd.ttf"
-    
     if os.path.exists(win_arial) and os.path.exists(win_arial_bd):
         try:
-            pdfmetrics.registerFont(TTFont("CustomArial", win_arial))
-            pdfmetrics.registerFont(TTFont("CustomArial-Bold", win_arial_bd))
+            if "CustomArial" not in pdfmetrics.getRegisteredFontNames():
+                pdfmetrics.registerFont(TTFont("CustomArial", win_arial))
+                pdfmetrics.registerFont(TTFont("CustomArial-Bold", win_arial_bd))
             return "CustomArial", "CustomArial-Bold"
         except Exception:
             pass
