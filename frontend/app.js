@@ -232,13 +232,29 @@ document.addEventListener("DOMContentLoaded", () => {
     // Show single header back button
     btnBackHome.style.display = "inline-flex";
 
-    // Header Chips
-    document.getElementById("res-domain").textContent = data.domain;
-    document.getElementById("res-cms-chip").textContent = data.cms_platform;
-    document.getElementById("res-ssl-chip").textContent = data.is_https ? "HTTPS" : "Без SSL";
-    document.getElementById("res-ssl-chip").className = data.is_https ? "chip chip-ssl" : "chip chip-neutral";
+    // Center Minimal Domain & Link
+    const domainEl = document.getElementById("res-domain");
+    if (domainEl) domainEl.textContent = data.domain;
 
-    // 1. Executive Summary Snapshot
+    const domainLink = document.getElementById("res-domain-link");
+    if (domainLink) {
+      domainLink.href = data.url || `https://${data.domain}`;
+    }
+
+    // 1. Executive Summary Meta Chips
+    const cmsChip = document.getElementById("exec-cms-chip");
+    if (cmsChip) cmsChip.textContent = data.cms_platform;
+
+    const sslChip = document.getElementById("exec-ssl-chip");
+    if (sslChip) {
+      sslChip.textContent = data.is_https ? "HTTPS" : "Без SSL";
+      sslChip.className = data.is_https ? "meta-pill meta-ssl" : "meta-pill meta-no-ssl";
+    }
+
+    const siteTypeChip = document.getElementById("exec-site-type");
+    if (siteTypeChip) siteTypeChip.textContent = data.site_type;
+
+    // Executive Summary Verdict
     const exec = data.executive_summary;
     const badgeEl = document.getElementById("exec-badge");
     badgeEl.textContent = exec.verdict_badge;
@@ -252,7 +268,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     document.getElementById("exec-title").textContent = exec.verdict_title;
-    document.getElementById("exec-site-type").textContent = data.site_type;
 
     // Render Takeaways
     const takeawaysContainer = document.getElementById("exec-takeaways");
@@ -304,11 +319,24 @@ document.addEventListener("DOMContentLoaded", () => {
       const blockEl = document.createElement("div");
       blockEl.className = "audit-block-card";
 
+      // Find the highest or first fine description in block
+      const fineItem = block.items.find((i) => i.fine_info && i.fine_info.trim() !== "");
+      const fineText = fineItem ? fineItem.fine_info : "";
+
       const topEl = document.createElement("div");
       topEl.className = "block-top";
       topEl.innerHTML = `
-        <span>${block.block_title}</span>
-        <span class="block-fine-badge">${block.items[0]?.fine_info || ""}</span>
+        <div class="block-title-row">
+          <h4 class="block-title-text">${block.block_title}</h4>
+        </div>
+        ${fineText ? `
+          <div class="block-fine-row">
+            <span class="block-fine-badge">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span>${fineText}</span>
+            </span>
+          </div>
+        ` : ""}
       `;
 
       const listEl = document.createElement("div");
@@ -327,7 +355,9 @@ document.addEventListener("DOMContentLoaded", () => {
             ${iconSvg}
             <span class="item-title-text">${item.title}</span>
           </div>
-          <div class="item-law-ref">Статья: ${item.law_ref}</div>
+          <div class="item-law-row">
+            <span class="item-law-ref">${item.law_ref}</span>
+          </div>
           <div class="item-text-body">${item.details}</div>
           <div class="item-fix-panel">
             <strong>Действие:</strong> ${item.tilda_fix}

@@ -43,13 +43,16 @@ def get_welcome_keyboard(webapp_url: str) -> InlineKeyboardMarkup:
     buttons = [
         [
             InlineKeyboardButton(
-                text="🚀 Запустить Экспресс-Аудит (Mini App)",
+                text="🚀 Запустить Экспресс-Аудит",
                 web_app=WebAppInfo(url=webapp_url)
             )
         ],
         [
-            InlineKeyboardButton(text="📢 Канал Яна (@yanv_tg)", url=CHANNEL_URL),
-            InlineKeyboardButton(text="💬 Связь (@yanvtg)", url=AUTHOR_URL)
+            InlineKeyboardButton(text="📋 Чек-лист", url="https://t.me/yanv_tg/154"),
+            InlineKeyboardButton(text="📢 Канал", url=CHANNEL_URL)
+        ],
+        [
+            InlineKeyboardButton(text="💬 Связь", url=AUTHOR_URL)
         ]
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -64,8 +67,11 @@ def get_result_keyboard(webapp_url: str, domain: str) -> InlineKeyboardMarkup:
             )
         ],
         [
-            InlineKeyboardButton(text="📢 Канал @yanv_tg", url=CHANNEL_URL),
-            InlineKeyboardButton(text="👨‍💻 Экспресс-аудит под ключ", url=AUTHOR_URL)
+            InlineKeyboardButton(text="📋 Чек-лист", url="https://t.me/yanv_tg/154"),
+            InlineKeyboardButton(text="📢 Канал", url=CHANNEL_URL)
+        ],
+        [
+            InlineKeyboardButton(text="💬 Связь", url=AUTHOR_URL)
         ]
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)

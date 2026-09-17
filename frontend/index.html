@@ -36,7 +36,10 @@
         </div>
       </div>
       <div class="nav-right">
-        <span class="compliance-tag">152-ФЗ & РКН</span>
+        <a href="https://t.me/yanv_tg/154" target="_blank" class="nav-checklist-link" title="Открыть чек-лист в Telegram">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <span>Чек-лист</span>
+        </a>
       </div>
     </header>
 
@@ -50,6 +53,17 @@
           <p class="hero-subtitle">
             Проверка на 152-ФЗ, запреты Роскомнадзора 2026 года и скрытые ошибки верстки, из-за которых сайт не продает.
           </p>
+
+          <a href="https://t.me/yanv_tg/154" target="_blank" class="checklist-hero-banner" title="Смотреть чек-лист в Telegram">
+            <div class="cl-badge-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            </div>
+            <div class="cl-badge-text">
+              <span class="cl-badge-headline">Чек-лист требований 2026</span>
+              <span class="cl-badge-sub">Открыть пост с законами в @yanv_tg</span>
+            </div>
+            <svg class="cl-badge-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+          </a>
         </div>
 
         <div class="card search-card">
@@ -132,18 +146,16 @@
 
       <!-- 4. Results View -->
       <section id="results-view" style="display: none;">
-        <!-- Top Action Row -->
-        <div class="results-header-bar">
-          <div class="site-title-box">
-            <h2 id="res-domain" class="res-domain-title">site.ru</h2>
-            <div class="site-chips">
-              <span id="res-cms-chip" class="chip chip-neutral">Сайт / HTML</span>
-              <span id="res-ssl-chip" class="chip chip-ssl">HTTPS</span>
-            </div>
-          </div>
-          <button id="btn-download-pdf" class="btn-pdf-download">
+        <!-- Centered Minimal Hero Row: Domain & Download PDF -->
+        <div class="results-top-minimal">
+          <a id="res-domain-link" href="#" target="_blank" class="res-domain-minimal" title="Открыть сайт в новой вкладке">
+            <svg class="domain-globe-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+            <span id="res-domain">site.ru</span>
+            <svg class="domain-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+          <button id="btn-download-pdf" class="btn-pdf-minimal" title="Скачать подробный отчет в формате PDF">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span>Скачать PDF</span>
+            <span>Скачать официальный PDF-отчет</span>
           </button>
         </div>
 
@@ -152,7 +164,9 @@
           <div class="exec-head-block">
             <div class="exec-status-row">
               <span id="exec-badge" class="verdict-pill">Внимание</span>
-              <span id="exec-site-type" class="site-type-label">Сайт услуг / Визитка</span>
+              <span id="exec-cms-chip" class="meta-pill">Сайт / HTML</span>
+              <span id="exec-site-type" class="meta-pill">Сайт услуг / Визитка</span>
+              <span id="exec-ssl-chip" class="meta-pill meta-ssl">HTTPS</span>
             </div>
             <h3 id="exec-title" class="exec-headline">Главный вердикт сайта</h3>
           </div>
