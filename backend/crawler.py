@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup
 RU_HOSTING_PATTERNS = [
     "timeweb", "selectel", "beget", "reg.ru", "regru", "yandex", "vk cloud", "mail.ru",
     "rostelecom", "sbercloud", "cloud.ru", "masterhost", "nic.ru", "spaceweb",
-    "mchost", "firstvds", "ispsystem", "infobox", "vscale", "tilda"
+    "mchost", "firstvds", "ispsystem", "infobox", "vscale"
 ]
 
 # Known foreign infrastructure
@@ -37,10 +37,12 @@ class SiteData:
         self.hosting_provider_guess: str = "Не определен"
         self.html: str = ""
         self.soup: Optional[BeautifulSoup] = None
+        self.cms_platform: str = "Самописный сайт / HTML"
         self.is_tilda: bool = False
+        self.is_ecommerce: bool = False
+        self.has_real_lead_forms: bool = False
         self.error: Optional[str] = None
         self.page_size_kb: float = 0.0
-        self.subpages_checked: Dict[str, int] = {}  # url -> status_code
 
 
 async def inspect_server_ip(domain: str) -> tuple[Optional[str], Optional[str], Optional[bool], str]:
@@ -71,7 +73,15 @@ async def inspect_server_ip(domain: str) -> tuple[Optional[str], Optional[str], 
         except Exception:
             pass
 
-        # Also make a quick async IP-API query with short timeout for country/org check
+        # Check reverse DNS first for known Russian hostings (e.g. timeweb.ru, beget.com, reg.ru)
+        if rdns:
+            for pat in RU_HOSTING_PATTERNS:
+                if pat in rdns:
+                    is_ru = True
+                    provider = pat.capitalize()
+                    break
+
+        # Also make an async IP-API query with short timeout for country/org check
         try:
             async with httpx.AsyncClient(timeout=2.5) as client:
                 res = await client.get(f"http://ip-api.com/json/{ip}?fields=status,country,countryCode,isp,org,as")
@@ -80,30 +90,104 @@ async def inspect_server_ip(domain: str) -> tuple[Optional[str], Optional[str], 
                     if data.get("status") == "success":
                         country_code = data.get("countryCode", "")
                         isp = (data.get("isp", "") + " " + data.get("org", "") + " " + data.get("as", "")).lower()
-                        provider = data.get("isp") or data.get("org") or "Не определен"
+                        if not is_ru:
+                            provider = data.get("isp") or data.get("org") or "Не определен"
                         if country_code == "RU":
                             is_ru = True
-                        else:
+                        elif is_ru is None:
                             is_ru = False
-                            # If Cloudflare is proxying, mention it
                             if "cloudflare" in isp:
                                 provider = "Cloudflare (Проксирование трафика за рубеж)"
         except Exception:
-            # Fallback to reverse DNS heuristic
-            if rdns:
-                for pat in RU_HOSTING_PATTERNS:
+            if is_ru is None and rdns:
+                for pat in FOREIGN_HOSTING_PATTERNS:
                     if pat in rdns:
-                        is_ru = True
+                        is_ru = False
                         provider = pat.capitalize()
                         break
-                if is_ru is None:
-                    for pat in FOREIGN_HOSTING_PATTERNS:
-                        if pat in rdns:
-                            is_ru = False
-                            provider = pat.capitalize()
-                            break
 
     return ip, rdns, is_ru, provider
+
+
+def detect_cms(soup: BeautifulSoup, html: str) -> tuple[str, bool]:
+    """Accurately detects CMS platform using strict signatures to prevent false positives."""
+    html_lower = html.lower()
+
+    # Strict Tilda detection (not just random substring in base64!)
+    generator = soup.find("meta", attrs={"name": "generator"})
+    gen_content = generator.get("content", "").lower() if generator else ""
+
+    if (
+        "tilda" in gen_content
+        or soup.select(".t-records, [data-tilda-project-id], script[src*='tildacdn.com'], link[href*='tildacdn.com']")
+        or "tilda-blocks-" in html_lower
+        or "tilda-scripts" in html_lower
+    ):
+        return "Tilda Publishing", True
+
+    if "wp-content" in html_lower or "wordpress" in gen_content:
+        return "WordPress", False
+
+    if "bitrix" in html_lower or "/bitrix/" in html_lower:
+        return "1С-Битрикс", False
+
+    if "insales" in html_lower:
+        return "InSales", False
+
+    return "Самописный сайт / HTML", False
+
+
+def detect_ecommerce(soup: BeautifulSoup, html: str) -> bool:
+    """Detects whether site is a true e-commerce store with online cart and checkout,
+    or simply a service/lead website."""
+    html_lower = html.lower()
+
+    # Online payment gateways
+    payment_indicators = [
+        "yookassa", "kassa.yandex", "cloudpayments.ru", "robokassa",
+        "securepay.tinkoff", "paykeeper", "tinkoff.ru/kassa", "tochka.com/payment"
+    ]
+    if any(p in html_lower for p in payment_indicators):
+        return True
+
+    # Real shopping cart forms and containers
+    cart_selectors = [
+        "[class*='shopping-cart']", "[id*='shopping-cart']",
+        ".t-cart", ".t706", "[class*='basket-checkout']",
+        "form[action*='checkout']", "form[action*='order']"
+    ]
+    if soup.select(", ".join(cart_selectors)):
+        return True
+
+    # Check button texts for actual online buying
+    for btn in soup.find_all(["button", "a"]):
+        txt = btn.get_text(strip=True).lower()
+        if txt in ["оформить заказ", "в корзину", "добавить в корзину", "перейти к оплате", "купить сейчас"]:
+            return True
+
+    return False
+
+
+def detect_lead_forms(soup: BeautifulSoup) -> bool:
+    """Checks if there are actual user input forms (name, phone, email),
+    ignoring hamburger menu toggle checkboxes or search bars."""
+    forms = soup.find_all("form")
+    for f in forms:
+        # Check if form contains input fields other than search or hidden
+        inputs = f.find_all("input")
+        meaningful_inputs = [
+            inp for inp in inputs
+            if inp.get("type") in ["text", "tel", "email", "number", "textarea", None]
+            and not any(s in (inp.get("name") or "").lower() for s in ["search", "q", "query", "s"])
+        ]
+        if meaningful_inputs or f.find("textarea"):
+            return True
+
+    # Also check Tilda forms
+    if soup.select(".t-form, .t-input, .js-form-proccess"):
+        return True
+
+    return False
 
 
 async def crawl_website(url: str) -> SiteData:
@@ -131,7 +215,6 @@ async def crawl_website(url: str) -> SiteData:
     start_time = time.time()
     try:
         async with httpx.AsyncClient(headers=headers, follow_redirects=True, timeout=12.0, verify=False) as client:
-            # Attempt HTTPS first
             try:
                 response = await client.get(target_url)
             except Exception:
@@ -152,15 +235,14 @@ async def crawl_website(url: str) -> SiteData:
             # Parse DOM
             data.soup = BeautifulSoup(data.html, "html.parser")
 
-            # Check if site is built on Tilda
-            html_lower = data.html.lower()
-            if (
-                "tilda" in html_lower
-                or "t-records" in html_lower
-                or "static.tildacdn.com" in html_lower
-                or "tildacdn" in html_lower
-            ):
-                data.is_tilda = True
+            # Accurate CMS detection
+            platform_name, is_tilda = detect_cms(data.soup, data.html)
+            data.cms_platform = platform_name
+            data.is_tilda = is_tilda
+
+            # Accurate form & e-commerce detection
+            data.is_ecommerce = detect_ecommerce(data.soup, data.html)
+            data.has_real_lead_forms = detect_lead_forms(data.soup)
 
             # Domain & server IP check
             parsed_final = urllib.parse.urlparse(data.final_url)

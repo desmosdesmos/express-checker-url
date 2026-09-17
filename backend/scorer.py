@@ -5,7 +5,7 @@ from .marketing_checker import run_marketing_audit
 
 
 def compile_full_audit(site: SiteData) -> Dict[str, Any]:
-    """Compiles both legal (27 items) and marketing audits into a unified report."""
+    """Compiles both legal and marketing audits into a unified, executive-level report."""
     legal_items = run_legal_audit(site)
     marketing = run_marketing_audit(site)
 
@@ -15,24 +15,35 @@ def compile_full_audit(site: SiteData) -> Dict[str, Any]:
     warning_legal = sum(1 for item in legal_items if item["status"] == "warning")
     legal_percent = int(round((passed_legal / total_legal) * 100))
 
-    # Calculate fines and risk levels
-    has_critical_legal = any(item["status"] == "failed" and item.get("risk_level") == "critical" for item in legal_items)
-    has_high_legal = any(item["status"] == "failed" and item.get("risk_level") == "high" for item in legal_items)
+    # Critical & high issues
+    critical_items = [i for i in legal_items if i["status"] == "failed" and i.get("risk_level") == "critical"]
+    high_items = [i for i in legal_items if i["status"] == "failed" and i.get("risk_level") == "high"]
+    other_failed = [i for i in legal_items if i["status"] == "failed" and i not in critical_items and i not in high_items]
 
-    if has_critical_legal or failed_legal >= 5:
+    all_failed_count = len(critical_items) + len(high_items) + len(other_failed)
+
+    if critical_items:
         overall_risk = "Критический риск"
         risk_color = "#ef4444"
-    elif has_high_legal or failed_legal >= 2:
+        verdict_badge = "Критические риски"
+        verdict_title = f"Обнаружено {all_failed_count} нарушений законодательства"
+    elif high_items or failed_legal >= 2:
         overall_risk = "Высокий риск"
         risk_color = "#f97316"
-    elif warning_legal > 4 or failed_legal >= 1:
+        verdict_badge = "Высокий риск"
+        verdict_title = f"Обнаружено {all_failed_count} нарушений"
+    elif failed_legal >= 1 or warning_legal > 4:
         overall_risk = "Умеренный риск"
         risk_color = "#eab308"
+        verdict_badge = "Требует внимания"
+        verdict_title = "Есть мелкие замечания"
     else:
         overall_risk = "Минимальный риск"
-        risk_color = "#22c55e"
+        risk_color = "#10b981"
+        verdict_badge = "Всё чисто"
+        verdict_title = "Сайт юридически безопасен"
 
-    # Specific fine tags matching user's PDF
+    # Specific fine tags
     form_items = [i for i in legal_items if i["id"] in [8, 9, 11]]
     form_failed = any(i["status"] == "failed" for i in form_items)
     fine_form_text = "до 700 000 ₽" if form_failed else "0 ₽ (В норме)"
@@ -41,7 +52,47 @@ def compile_full_audit(site: SiteData) -> Dict[str, Any]:
     loc_failed = any(i["status"] == "failed" for i in loc_items)
     fine_loc_text = "до 18 000 000 ₽" if loc_failed else "0 ₽ (В норме)"
 
-    # Group legal items by blocks (1 to 7)
+    # Short executive takeaways (до 4 главных пунктов простым языком)
+    takeaways = []
+    if not site.has_real_lead_forms:
+        takeaways.append({
+            "type": "positive",
+            "text": "Формы захвата контактов отсутствуют (посетители звонят/пишут напрямую) — риски штрафов за формы и чекбоксы исключены."
+        })
+    elif form_failed:
+        takeaways.append({
+            "type": "negative",
+            "text": "В веб-формах обнаружены нарушения (нет пустого чекбокса или активной ссылки на политику) — риск штрафа до 700 000 ₽."
+        })
+
+    if site.is_ru_hosting is True:
+        takeaways.append({
+            "type": "positive",
+            "text": f"Сервер расположен в РФ ({site.hosting_provider_guess}) — закон о локализации баз данных соблюден."
+        })
+    elif site.is_ru_hosting is False:
+        takeaways.append({
+            "type": "negative",
+            "text": f"Сервер находится за пределами РФ ({site.hosting_provider_guess}) — критический риск блокировки РКН."
+        })
+
+    privacy_item = next((i for i in legal_items if i["id"] == 4), None)
+    if privacy_item and privacy_item["status"] == "failed":
+        takeaways.append({
+            "type": "negative",
+            "text": "Не найдена Политика конфиденциальности — штраф до 60 000 ₽ (ст. 13.11 ч. 3 КоАП)."
+        })
+
+    ga_item = next((i for i in legal_items if i["id"] == 18), None)
+    if ga_item and ga_item["status"] == "failed":
+        takeaways.append({
+            "type": "negative",
+            "text": "Установлен счетчик Google Analytics — передача данных в США запрещена."
+        })
+
+    site_type_label = "Интернет-магазин (онлайн-оплата)" if site.is_ecommerce else "Сайт услуг / Визитка (прямая связь)"
+
+    # Group legal items by blocks
     blocks_dict: Dict[int, Dict[str, Any]] = {}
     for item in legal_items:
         b_id = item["block_id"]
@@ -55,41 +106,48 @@ def compile_full_audit(site: SiteData) -> Dict[str, Any]:
 
     blocks_list = list(blocks_dict.values())
 
-    # Build concise text report for Telegram message
-    top_legal_issues = [f"• {i['title']} ({i['fine_info']})" for i in legal_items if i["status"] == "failed"][:4]
-    top_marketing_issues = [f"• {c['title']}: {c['impact']}" for c in marketing["checks"] if c["status"] == "failed"][:3]
-
     telegram_summary = (
-        f"📊 **Экспресс-Аудит сайта:** {site.domain}\n"
-        f"🌐 Движок: {'Tilda' if site.is_tilda else 'Сайт / CMS'}\n"
-        f"⏱ Время ответа: {site.response_time_ms} мс | SSL: {'✅ HTTPS' if site.is_https else '❌ Без SSL'}\n\n"
-        f"⚖️ **Юридическая готовность (2026 г.):** {passed_legal} / {total_legal} ({legal_percent}%)\n"
-        f"🚨 Уровень риска: **{overall_risk}**\n"
-        f"💸 Штраф за формы: **{fine_form_text}**\n"
-        f"💸 Риск локализации: **{fine_loc_text}**\n\n"
-        f"🚀 **Маркетинг и продажи (UX):** {marketing['score']}/100\n"
+        f"📋 Экспресс-Аудит сайта: {site.domain}\n"
+        f"Тип: {site_type_label} | Платформа: {site.cms_platform}\n"
+        f"Хостинг: {site.hosting_provider_guess} ({'РФ' if site.is_ru_hosting else 'Зарубеж'})\n\n"
+        f"Юридическая готовность (2026 г.): {passed_legal} / {total_legal} ({legal_percent}%)\n"
+        f"Вердикт: {overall_risk}\n"
+        f"Штраф за формы: {fine_form_text}\n"
+        f"Штраф за локализацию: {fine_loc_text}\n"
+        f"Оценка конверсии: {marketing['score']}/100\n\n"
     )
 
-    if top_legal_issues:
-        telegram_summary += "\n🔴 **Критические юридические риски:**\n" + "\n".join(top_legal_issues) + "\n"
-    if top_marketing_issues:
-        telegram_summary += "\n⚠️ **Почему сайт теряет заявки:**\n" + "\n".join(top_marketing_issues) + "\n"
+    if critical_items or high_items:
+        telegram_summary += "Ключевые риски:\n"
+        for it in (critical_items + high_items)[:3]:
+            telegram_summary += f"• {it['title']} ({it['fine_info']})\n"
+        telegram_summary += "\n"
 
     telegram_summary += (
-        f"\n💡 Подробный разбор и официальный PDF-отчет сформированы в Mini App.\n\n"
-        f"📢 Канал автора: @yanv_tg\n"
-        f"👨‍💻 Экспресс-аудит под ключ: @yanvtg"
+        "Канал Яна: @yanv_tg\n"
+        "Связь и экспресс-аудит под ключ: @yanvtg"
     )
 
     return {
         "url": site.final_url or site.raw_url,
         "domain": site.domain,
+        "cms_platform": site.cms_platform,
         "is_tilda": site.is_tilda,
+        "site_type": site_type_label,
         "is_https": site.is_https,
         "response_time_ms": site.response_time_ms,
         "ip_address": site.ip_address,
         "hosting_provider": site.hosting_provider_guess,
         "is_ru_hosting": site.is_ru_hosting,
+        "executive_summary": {
+            "verdict_badge": verdict_badge,
+            "verdict_title": verdict_title,
+            "overall_risk": overall_risk,
+            "risk_color": risk_color,
+            "all_failed_count": all_failed_count,
+            "warning_count": warning_legal,
+            "takeaways": takeaways
+        },
         "legal": {
             "total": total_legal,
             "passed": passed_legal,

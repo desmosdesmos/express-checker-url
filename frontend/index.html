@@ -6,7 +6,7 @@
   <title>Экспресс-Аудит сайтов 2026 | @yanv_tg</title>
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <!-- Google Fonts: Inter -->
+  <!-- Inter font with tight typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -14,193 +14,243 @@
 </head>
 <body>
   <div id="app" class="app-container">
-    <!-- Header -->
-    <header class="app-header">
-      <div class="brand-row">
-        <div class="brand-left">
-          <div class="brand-logo">D/</div>
-          <div>
-            <div class="brand-name">Ян <span class="badge-accent">2026</span></div>
-            <a href="https://t.me/yanv_tg" target="_blank" class="brand-channel">
+    <!-- Top Bar -->
+    <header class="top-nav">
+      <div class="nav-left">
+        <button id="btn-back-home" class="btn-back" style="display: none;" title="На главный экран">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          <span>На главную</span>
+        </button>
+        <div class="brand-group" id="header-brand">
+          <div class="brand-badge">D/</div>
+          <div class="brand-meta">
+            <div class="brand-name">
+              <span>Ян</span>
+              <span class="pill-year">2026</span>
+            </div>
+            <a href="https://t.me/yanv_tg" target="_blank" class="brand-link">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
-              @yanv_tg <span>(связь @yanvtg)</span>
+              <span>@yanv_tg</span>
             </a>
           </div>
         </div>
-        <div class="badge-year">АКТУАЛЬНО НА 2026 ГОД</div>
       </div>
-      <div class="header-intro">
-        <div class="kicker">ЧЕК-ЛИСТ АУДИТА И ЮРИДИЧЕСКОЙ ЗАЩИТЫ</div>
-        <h1 class="main-title">Экспресс-Аудит сайтов в РФ</h1>
-        <p class="main-subtitle">Проверка на 152-ФЗ, скрытые счетчики РКН, запреты 2026 года и конверсию на Тильде.</p>
+      <div class="nav-right">
+        <span class="compliance-tag">РКН & 152-ФЗ</span>
       </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="app-main">
-      <!-- Input Card -->
-      <section id="input-card" class="card input-card">
-        <label for="site-url" class="input-label">Введите адрес сайта для проверки:</label>
-        <div class="input-wrapper">
-          <span class="input-icon">🌐</span>
-          <input type="text" id="site-url" placeholder="например, site.ru или https://..." autocomplete="off" />
-          <button id="btn-clear" class="btn-clear" style="display: none;">✕</button>
+    <!-- Main Views -->
+    <main class="main-content">
+      <!-- 1. Input Screen -->
+      <section id="input-card" class="view-panel">
+        <div class="hero-intro">
+          <div class="sub-kicker">ЮРИДИЧЕСКИЙ ЧЕК-ЛИСТ & КОНВЕРСИЯ</div>
+          <h1 class="hero-title">Экспресс-Аудит сайтов в РФ</h1>
+          <p class="hero-subtitle">
+            Проверьте сайт на соответствие требованиям законодательства 2026 года, риски штрафов Роскомнадзора и ошибки, убивающие заявки.
+          </p>
         </div>
-        <button id="btn-submit" class="btn btn-primary">
-          <span class="btn-text">🚀 Запустить аудит сайта</span>
-          <span class="btn-spinner" style="display: none;"></span>
-        </button>
-        <div class="quick-examples">
-          <span>Примеры:</span>
-          <button class="quick-chip" data-url="tilda.cc">tilda.cc</button>
-          <button class="quick-chip" data-url="ozon.ru">ozon.ru</button>
-          <button class="quick-chip" data-url="yandex.ru">yandex.ru</button>
+
+        <div class="card search-card">
+          <label for="site-url" class="field-label">Адрес сайта для анализа:</label>
+          <div class="input-field">
+            <svg class="field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+            <input type="text" id="site-url" placeholder="например, site.ru или https://..." autocomplete="off" />
+            <button id="btn-clear" class="btn-icon-clear" style="display: none;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+          </div>
+
+          <button id="btn-submit" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+            <span>Запустить аудит сайта</span>
+          </button>
+
+          <div class="quick-row">
+            <span class="quick-label">Попробовать:</span>
+            <button class="quick-chip" data-url="ema-detailing64.ru">ema-detailing64.ru</button>
+            <button class="quick-chip" data-url="tilda.cc">tilda.cc</button>
+            <button class="quick-chip" data-url="ozon.ru">ozon.ru</button>
+          </div>
+        </div>
+
+        <!-- Trust Feature Cards -->
+        <div class="features-grid">
+          <div class="feature-item">
+            <div class="feat-icon feat-red">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+            </div>
+            <div>
+              <div class="feat-title">Защита от штрафов</div>
+              <div class="feat-desc">Проверка 152-ФЗ, запрета GA, предустановленных галочек и локализации в РФ.</div>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feat-icon feat-blue">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/></svg>
+            </div>
+            <div>
+              <div class="feat-title">Точный контекст</div>
+              <div class="feat-desc">Распознает сайты услуг без онлайн-кассы и не требует лишних оферт магазина.</div>
+            </div>
+          </div>
         </div>
       </section>
 
-      <!-- Loading State -->
+      <!-- 2. Loading State -->
       <section id="loading-card" class="card loading-card" style="display: none;">
-        <div class="spinner-ring"></div>
-        <h3 class="loading-title">Идет глубокое сканирование сайта...</h3>
+        <div class="scanner-anim">
+          <div class="pulse-ring"></div>
+          <div class="scanner-core">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+          </div>
+        </div>
+        <h3 class="loading-title">Идет сканирование сайта</h3>
         <p id="loading-domain" class="loading-domain"></p>
-        <ul class="loading-steps">
-          <li id="step-1" class="step active">📡 Подключение и проверка DNS / SSL...</li>
-          <li id="step-2" class="step">⚖️ Проверка 152-ФЗ, форм и чекбоксов...</li>
-          <li id="step-3" class="step">🔍 Поиск скрытых Google Analytics и Meta...</li>
-          <li id="step-4" class="step">🇷🇺 Проверка русификации и доступности 2026...</li>
-          <li id="step-5" class="step">🚀 Аудит первого экрана и конверсии...</li>
-        </ul>
+        <div class="step-progress">
+          <div id="step-1" class="step-line active"><span>1</span> Подключение к серверу, проверка SSL и хостинга...</div>
+          <div id="step-2" class="step-line"><span>2</span> Анализ форм, согласий и 152-ФЗ...</div>
+          <div id="step-3" class="step-line"><span>3</span> Поиск скрытых счетчиков Google и Meta...</div>
+          <div id="step-4" class="step-line"><span>4</span> Русификация и доступность по стандартам 2026...</div>
+          <div id="step-5" class="step-line"><span>5</span> Аудит оффера, точек контакта и конверсии...</div>
+        </div>
       </section>
 
-      <!-- Error State -->
+      <!-- 3. Error Card -->
       <section id="error-card" class="card error-card" style="display: none;">
-        <div class="error-icon">⚠️</div>
-        <h3 class="error-title">Не удалось выполнить проверку</h3>
+        <div class="err-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <h3 class="error-title">Не удалось выполнить аудит</h3>
         <p id="error-message" class="error-message"></p>
         <button id="btn-retry" class="btn btn-secondary">Попробовать снова</button>
       </section>
 
-      <!-- Results View -->
+      <!-- 4. Results View -->
       <section id="results-view" style="display: none;">
-        <!-- Top Metrics Overview -->
-        <div class="card result-overview-card">
-          <div class="site-header-row">
-            <div>
-              <span id="res-tilda-badge" class="tilda-badge">Tilda CMS</span>
-              <h2 id="res-domain" class="res-domain">site.ru</h2>
-            </div>
-            <div class="site-meta-tags">
-              <span id="res-ssl-badge" class="meta-tag">HTTPS</span>
-              <span id="res-speed-badge" class="meta-tag">⚡ 280 мс</span>
-            </div>
-          </div>
-
-          <!-- Readiness Bar -->
-          <div class="readiness-box">
-            <div class="readiness-header">
-              <span class="readiness-title">ГОТОВНОСТЬ К ПРОВЕРКАМ РКН:</span>
-              <span id="res-readiness-val" class="readiness-value">0 / 27 (0%)</span>
-            </div>
-            <div class="progress-track">
-              <div id="res-progress-bar" class="progress-fill" style="width: 0%;"></div>
-            </div>
-          </div>
-
-          <!-- 3 Stat Blocks (Like PDF) -->
-          <div class="metrics-grid">
-            <div class="metric-card">
-              <div class="metric-label">УРОВЕНЬ РИСКА</div>
-              <div id="res-risk-level" class="metric-value risk-high">Высокий риск</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">ШТРАФ ЗА ФОРМУ</div>
-              <div id="res-fine-form" class="metric-value">до 700 000 ₽</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">ШТРАФ ЗА ЛОКАЛИЗАЦИЮ</div>
-              <div id="res-fine-loc" class="metric-value">до 18 000 000 ₽</div>
-            </div>
-          </div>
-
-          <!-- RKN 2026 Warning Callout -->
-          <div class="callout-2026">
-            <strong>Реальность 2026 года:</strong> Роскомнадзор внедрил круглосуточное автоматическое сканирование нейросетями. ИИ-боты находят скрытые счетчики Google Analytics, пиксели Meta, отсутствие политики и предустановленные галочки. Дедлайн на устранение — 10 дней.
-          </div>
-
-          <!-- Action Buttons -->
-          <div class="action-buttons-row">
-            <button id="btn-download-pdf" class="btn btn-pdf">
-              <span>📥 Скачать PDF-отчет</span>
-            </button>
-            <button id="btn-copy-summary" class="btn btn-copy">
-              <span>📋 Скопировать выжимку</span>
-            </button>
-            <button id="btn-new-check" class="btn btn-ghost">
-              <span>🔄 Другой сайт</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Navigation Tabs -->
-        <div class="tabs-nav">
-          <button class="tab-btn active" data-tab="tab-legal">
-            ⚖️ Юридический аудит (27 пунктов)
+        <!-- Return / Action Header -->
+        <div class="results-action-bar">
+          <button id="btn-back-results" class="btn-action-back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+            <span>На главный экран</span>
           </button>
-          <button class="tab-btn" data-tab="tab-marketing">
-            🚀 Продажи и конверсия (<span id="res-marketing-score">0</span>/100)
+          <button id="btn-download-pdf" class="btn-action-pdf">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Скачать PDF</span>
           </button>
         </div>
 
-        <!-- Tab 1: Legal Audit -->
-        <div id="tab-legal" class="tab-content active">
-          <!-- Filter chips -->
-          <div class="filter-row">
-            <button class="filter-chip active" data-filter="all">Все (27)</button>
-            <button class="filter-chip chip-failed" data-filter="failed">🔴 Нарушения (<span id="count-failed">0</span>)</button>
-            <button class="filter-chip chip-warning" data-filter="warning">🟡 Внимание (<span id="count-warning">0</span>)</button>
-            <button class="filter-chip chip-passed" data-filter="passed">🟢 В норме (<span id="count-passed">0</span>)</button>
+        <!-- NEW: Executive Summary Card (Короткий и понятный обзор) -->
+        <div class="card executive-summary-card">
+          <div class="summary-top">
+            <div class="verdict-header">
+              <span id="exec-badge" class="verdict-badge">Внимание</span>
+              <h2 id="exec-title" class="verdict-headline">Экспресс-сводка сайта</h2>
+            </div>
+            <div class="site-type-badge" id="exec-site-type">Сайт услуг</div>
           </div>
 
-          <!-- Accordion Blocks 1 to 7 -->
-          <div id="legal-blocks-container" class="legal-blocks-container">
-            <!-- Dynamically populated -->
+          <!-- Quick Takeaway Bullets -->
+          <div id="exec-takeaways" class="takeaways-list">
+            <!-- Dynamically populated key points -->
           </div>
+
+          <!-- 3 Quick Numbers -->
+          <div class="snapshot-metrics">
+            <div class="snapshot-col">
+              <div class="snap-label">Юр. готовность</div>
+              <div class="snap-val" id="snap-legal">24 / 27</div>
+            </div>
+            <div class="snapshot-col">
+              <div class="snap-label">Риск штрафа за формы</div>
+              <div class="snap-val" id="snap-fine-form">0 ₽</div>
+            </div>
+            <div class="snapshot-col">
+              <div class="snap-label">Хостинг</div>
+              <div class="snap-val" id="snap-hosting">TimeWeb (РФ)</div>
+            </div>
+          </div>
+
+          <!-- Deep-dive anchor trigger -->
+          <button id="btn-scroll-details" class="btn-details-link">
+            <span>Смотреть подробный разбор по пунктам</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
         </div>
 
-        <!-- Tab 2: Marketing Audit -->
-        <div id="tab-marketing" class="tab-content">
-          <div class="card marketing-overview-card">
-            <div class="m-head">
-              <h3>Маркетинг и UX: почему сайт теряет клиентов</h3>
-              <p>Оценка факторов первого экрана, структуры УТП, точек захвата и мобильного опыта на Tilda.</p>
+        <!-- Tabs Nav for In-depth view -->
+        <div id="deep-dive-section" class="details-section">
+          <div class="tabs-nav">
+            <button class="tab-btn active" data-tab="tab-legal">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
+              <span>Юридический аудит (27 пунктов)</span>
+            </button>
+            <button class="tab-btn" data-tab="tab-marketing">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <span>Конверсия (<span id="res-marketing-score">0</span>/100)</span>
+            </button>
+          </div>
+
+          <!-- Tab 1: Legal Audit Details -->
+          <div id="tab-legal" class="tab-content active">
+            <div class="filter-bar">
+              <button class="filter-pill active" data-filter="all">Все (27)</button>
+              <button class="filter-pill pill-fail" data-filter="failed">Нарушения (<span id="count-failed">0</span>)</button>
+              <button class="filter-pill pill-warn" data-filter="warning">Внимание (<span id="count-warning">0</span>)</button>
+              <button class="filter-pill pill-pass" data-filter="passed">В норме (<span id="count-passed">0</span>)</button>
             </div>
-            <div id="marketing-items-container" class="marketing-items-container">
+
+            <div id="legal-blocks-container" class="blocks-container">
               <!-- Dynamically populated -->
             </div>
           </div>
+
+          <!-- Tab 2: Marketing Audit Details -->
+          <div id="tab-marketing" class="tab-content">
+            <div class="card marketing-card">
+              <div class="marketing-intro">
+                <h3>Аудит продаж: почему сайт теряет клиентов</h3>
+                <p>Анализ первого экрана, ясности предложения, удобства связи и вида ссылки в мессенджерах.</p>
+              </div>
+              <div id="marketing-items-container" class="marketing-list">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- Lead Magnet / Footer CTA Card (Author branding) -->
-        <div class="card cta-card">
-          <div class="cta-badge">ЭКСПРЕСС-АУДИТ И ДОРАБОТКА НА ТИЛЬДЕ</div>
-          <h3 class="cta-title">Нужен профессиональный аудит сайта под ключ?</h3>
-          <p class="cta-desc">
-            Проверим скрытые скрипты, настроим формы по 152-ФЗ, устраним риск блокировок РКН и доработаем конверсию на Тильде.
+        <!-- Utility Action Bar -->
+        <div class="util-row">
+          <button id="btn-copy-summary" class="btn btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            <span>Скопировать выжимку для клиента</span>
+          </button>
+        </div>
+
+        <!-- Lead Generation Box (Author CTA) -->
+        <div class="card author-card">
+          <div class="author-badge">АУДИТ ПОД КЛЮЧ</div>
+          <h3 class="author-title">Нужен персональный аудит или доработка сайта?</h3>
+          <p class="author-desc">
+            Проверим ваш сайт на скрытые трекеры, защитим от блокировок РКН и доработаем конверсию.
           </p>
-          <div class="cta-buttons">
-            <a href="https://t.me/yanv_tg" target="_blank" class="btn btn-channel">
-              📢 Подписаться на канал @yanv_tg
+          <div class="author-actions">
+            <a href="https://t.me/yanv_tg" target="_blank" class="btn btn-tg-channel">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+              <span>Подписаться на канал @yanv_tg</span>
             </a>
-            <a href="https://t.me/yanvtg" target="_blank" class="btn btn-author">
-              💬 Написать автору: @yanvtg
+            <a href="https://t.me/yanvtg" target="_blank" class="btn btn-tg-contact">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>
+              <span>Написать автору: @yanvtg</span>
             </a>
           </div>
         </div>
       </section>
     </main>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="toast">Отчет скопирован в буфер обмена!</div>
+    <!-- Toast -->
+    <div id="toast" class="toast">Отчет скопирован в буфер!</div>
   </div>
 
   <script src="app.js"></script>
