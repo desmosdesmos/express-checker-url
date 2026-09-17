@@ -91,8 +91,8 @@ def generate_audit_pdf(audit_data: Dict[str, Any]) -> bytes:
     style_logo_text = ParagraphStyle(
         "LogoText",
         fontName=f_bold,
-        fontSize=13,
-        leading=13,
+        fontSize=11,
+        leading=12,
         textColor=colors.white,
         alignment=1
     )
@@ -178,14 +178,16 @@ def generate_audit_pdf(audit_data: Dict[str, Any]) -> bytes:
     story = []
 
     # 1. Header with authentic D/ Logo box, Name and Year Pill
-    # D/ Logo block: black rounded square
-    logo_table = Table([[Paragraph("D/", style_logo_text)]], colWidths=[8.5 * mm], rowHeights=[8.5 * mm])
+    # D/ Logo block: authentic black square with single-line D/
+    logo_table = Table([[Paragraph("<b>D/</b>", style_logo_text)]], colWidths=[10 * mm], rowHeights=[10 * mm])
     logo_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#000000")),
         ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
         ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+        ('LEFTPADDING', (0,0), (-1,-1), 0),
+        ('RIGHTPADDING', (0,0), (-1,-1), 0),
+        ('TOPPADDING', (0,0), (-1,-1), 0),
         ('BOTTOMPADDING', (0,0), (-1,-1), 0),
-        ('TOPPADDING', (0,0), (-1,-1), 4),
     ]))
 
     # Author text block
