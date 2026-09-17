@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Экспресс-Аудит сайтов 2026 | @yanv_tg</title>
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app" class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand-row">
+        <div class="brand-left">
+          <div class="brand-logo">D/</div>
+          <div>
+            <div class="brand-name">Ян <span class="badge-accent">2026</span></div>
+            <a href="https://t.me/yanv_tg" target="_blank" class="brand-channel">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+              @yanv_tg <span>(связь @yanvtg)</span>
+            </a>
+          </div>
+        </div>
+        <div class="badge-year">АКТУАЛЬНО НА 2026 ГОД</div>
+      </div>
+      <div class="header-intro">
+        <div class="kicker">ЧЕК-ЛИСТ АУДИТА И ЮРИДИЧЕСКОЙ ЗАЩИТЫ</div>
+        <h1 class="main-title">Экспресс-Аудит сайтов в РФ</h1>
+        <p class="main-subtitle">Проверка на 152-ФЗ, скрытые счетчики РКН, запреты 2026 года и конверсию на Тильде.</p>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <!-- Input Card -->
+      <section id="input-card" class="card input-card">
+        <label for="site-url" class="input-label">Введите адрес сайта для проверки:</label>
+        <div class="input-wrapper">
+          <span class="input-icon">🌐</span>
+          <input type="text" id="site-url" placeholder="например, site.ru или https://..." autocomplete="off" />
+          <button id="btn-clear" class="btn-clear" style="display: none;">✕</button>
+        </div>
+        <button id="btn-submit" class="btn btn-primary">
+          <span class="btn-text">🚀 Запустить аудит сайта</span>
+          <span class="btn-spinner" style="display: none;"></span>
+        </button>
+        <div class="quick-examples">
+          <span>Примеры:</span>
+          <button class="quick-chip" data-url="tilda.cc">tilda.cc</button>
+          <button class="quick-chip" data-url="ozon.ru">ozon.ru</button>
+          <button class="quick-chip" data-url="yandex.ru">yandex.ru</button>
+        </div>
+      </section>
+
+      <!-- Loading State -->
+      <section id="loading-card" class="card loading-card" style="display: none;">
+        <div class="spinner-ring"></div>
+        <h3 class="loading-title">Идет глубокое сканирование сайта...</h3>
+        <p id="loading-domain" class="loading-domain"></p>
+        <ul class="loading-steps">
+          <li id="step-1" class="step active">📡 Подключение и проверка DNS / SSL...</li>
+          <li id="step-2" class="step">⚖️ Проверка 152-ФЗ, форм и чекбоксов...</li>
+          <li id="step-3" class="step">🔍 Поиск скрытых Google Analytics и Meta...</li>
+          <li id="step-4" class="step">🇷🇺 Проверка русификации и доступности 2026...</li>
+          <li id="step-5" class="step">🚀 Аудит первого экрана и конверсии...</li>
+        </ul>
+      </section>
+
+      <!-- Error State -->
+      <section id="error-card" class="card error-card" style="display: none;">
+        <div class="error-icon">⚠️</div>
+        <h3 class="error-title">Не удалось выполнить проверку</h3>
+        <p id="error-message" class="error-message"></p>
+        <button id="btn-retry" class="btn btn-secondary">Попробовать снова</button>
+      </section>
+
+      <!-- Results View -->
+      <section id="results-view" style="display: none;">
+        <!-- Top Metrics Overview -->
+        <div class="card result-overview-card">
+          <div class="site-header-row">
+            <div>
+              <span id="res-tilda-badge" class="tilda-badge">Tilda CMS</span>
+              <h2 id="res-domain" class="res-domain">site.ru</h2>
+            </div>
+            <div class="site-meta-tags">
+              <span id="res-ssl-badge" class="meta-tag">HTTPS</span>
+              <span id="res-speed-badge" class="meta-tag">⚡ 280 мс</span>
+            </div>
+          </div>
+
+          <!-- Readiness Bar -->
+          <div class="readiness-box">
+            <div class="readiness-header">
+              <span class="readiness-title">ГОТОВНОСТЬ К ПРОВЕРКАМ РКН:</span>
+              <span id="res-readiness-val" class="readiness-value">0 / 27 (0%)</span>
+            </div>
+            <div class="progress-track">
+              <div id="res-progress-bar" class="progress-fill" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <!-- 3 Stat Blocks (Like PDF) -->
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-label">УРОВЕНЬ РИСКА</div>
+              <div id="res-risk-level" class="metric-value risk-high">Высокий риск</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">ШТРАФ ЗА ФОРМУ</div>
+              <div id="res-fine-form" class="metric-value">до 700 000 ₽</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">ШТРАФ ЗА ЛОКАЛИЗАЦИЮ</div>
+              <div id="res-fine-loc" class="metric-value">до 18 000 000 ₽</div>
+            </div>
+          </div>
+
+          <!-- RKN 2026 Warning Callout -->
+          <div class="callout-2026">
+            <strong>Реальность 2026 года:</strong> Роскомнадзор внедрил круглосуточное автоматическое сканирование нейросетями. ИИ-боты находят скрытые счетчики Google Analytics, пиксели Meta, отсутствие политики и предустановленные галочки. Дедлайн на устранение — 10 дней.
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="action-buttons-row">
+            <button id="btn-download-pdf" class="btn btn-pdf">
+              <span>📥 Скачать PDF-отчет</span>
+            </button>
+            <button id="btn-copy-summary" class="btn btn-copy">
+              <span>📋 Скопировать выжимку</span>
+            </button>
+            <button id="btn-new-check" class="btn btn-ghost">
+              <span>🔄 Другой сайт</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="tabs-nav">
+          <button class="tab-btn active" data-tab="tab-legal">
+            ⚖️ Юридический аудит (27 пунктов)
+          </button>
+          <button class="tab-btn" data-tab="tab-marketing">
+            🚀 Продажи и конверсия (<span id="res-marketing-score">0</span>/100)
+          </button>
+        </div>
+
+        <!-- Tab 1: Legal Audit -->
+        <div id="tab-legal" class="tab-content active">
+          <!-- Filter chips -->
+          <div class="filter-row">
+            <button class="filter-chip active" data-filter="all">Все (27)</button>
+            <button class="filter-chip chip-failed" data-filter="failed">🔴 Нарушения (<span id="count-failed">0</span>)</button>
+            <button class="filter-chip chip-warning" data-filter="warning">🟡 Внимание (<span id="count-warning">0</span>)</button>
+            <button class="filter-chip chip-passed" data-filter="passed">🟢 В норме (<span id="count-passed">0</span>)</button>
+          </div>
+
+          <!-- Accordion Blocks 1 to 7 -->
+          <div id="legal-blocks-container" class="legal-blocks-container">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Tab 2: Marketing Audit -->
+        <div id="tab-marketing" class="tab-content">
+          <div class="card marketing-overview-card">
+            <div class="m-head">
+              <h3>Маркетинг и UX: почему сайт теряет клиентов</h3>
+              <p>Оценка факторов первого экрана, структуры УТП, точек захвата и мобильного опыта на Tilda.</p>
+            </div>
+            <div id="marketing-items-container" class="marketing-items-container">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Lead Magnet / Footer CTA Card (Author branding) -->
+        <div class="card cta-card">
+          <div class="cta-badge">ЭКСПРЕСС-АУДИТ И ДОРАБОТКА НА ТИЛЬДЕ</div>
+          <h3 class="cta-title">Нужен профессиональный аудит сайта под ключ?</h3>
+          <p class="cta-desc">
+            Проверим скрытые скрипты, настроим формы по 152-ФЗ, устраним риск блокировок РКН и доработаем конверсию на Тильде.
+          </p>
+          <div class="cta-buttons">
+            <a href="https://t.me/yanv_tg" target="_blank" class="btn btn-channel">
+              📢 Подписаться на канал @yanv_tg
+            </a>
+            <a href="https://t.me/yanvtg" target="_blank" class="btn btn-author">
+              💬 Написать автору: @yanvtg
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">Отчет скопирован в буфер обмена!</div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
