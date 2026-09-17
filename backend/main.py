@@ -31,11 +31,13 @@ class AuditRequest(BaseModel):
 
 
 @app.get("/api/health")
+@app.get("/health")
 async def health_check():
     return {"status": "ok", "service": "Express Checker 2026", "author": "@yanv_tg"}
 
 
 @app.post("/api/audit")
+@app.post("/audit")
 async def perform_audit(req: AuditRequest):
     raw_url = req.url.strip()
     if not raw_url:
@@ -50,6 +52,7 @@ async def perform_audit(req: AuditRequest):
 
 
 @app.post("/api/export-pdf")
+@app.post("/export-pdf")
 async def export_audit_pdf(req: AuditRequest):
     raw_url = req.url.strip()
     if not raw_url:
