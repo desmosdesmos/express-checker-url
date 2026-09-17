@@ -7,3 +7,5 @@ env/
 venv/
 *.pdf
 .DS_Store
+
+.vercel
