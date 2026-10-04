@@ -50,7 +50,7 @@ async def health_check():
 @app.post("/check-sub")
 async def check_channel_subscription(req: SubCheckRequest):
     """Strictly verifies whether the user is subscribed to @yanv_tg channel."""
-    bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "8902079020:AAGTldoxJ4u2UqlHVKiZPgLa96BJ4EvmEzM").strip() or "8902079020:AAGTldoxJ4u2UqlHVKiZPgLa96BJ4EvmEzM"
+    bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
     channel = "@yanv_tg"
     channel_id = "-1002151986698"
 
